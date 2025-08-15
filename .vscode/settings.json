@@ -1,0 +1,6 @@
+{
+  "stylelint.autoFixOnSave": true,
+  "stylelint.config": {},
+  "stylelint.configOverrides": {},
+  "stylelint.enable": false
+}
