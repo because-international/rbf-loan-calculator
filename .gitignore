@@ -31,7 +31,7 @@ $RECYCLE.BIN/
 !.vscode/launch.json
 !.vscode/extensions.json
 *.code-workspace
-
+.history
 
 # Node.js
 node_modules/
