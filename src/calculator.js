@@ -45,7 +45,7 @@ export const formatValue = (key, value) => {
     revenueShareRate: { label: 'Revenue Share Rate (%)', suffix: '%', step: 0.5 },
     repaymentPeriod: { label: 'Repayment Period (months)', suffix: ' months', step: 1 },
     profitMargin: { label: 'Annual Profit Margin (%)', suffix: '%', step: 1 },
-    annualRevenue: { label: 'Annual Revenue', prefix: '$', step: 1000 }
+    annualRevenue: { label: 'Annual Revenue ($)', prefix: '$', step: 1000 }
   };
 
   const variable = variables[key];

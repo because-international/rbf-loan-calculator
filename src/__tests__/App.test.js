@@ -22,7 +22,7 @@ jest.mock('../calculator', () => ({
       revenueShareRate: { label: 'Revenue Share Rate (%)', suffix: '%', step: 0.5 },
       repaymentPeriod: { label: 'Repayment Period (months)', suffix: ' months', step: 1 },
       profitMargin: { label: 'Annual Profit Margin (%)', suffix: '%', step: 1 },
-      annualRevenue: { label: 'Annual Revenue', prefix: '$', step: 1000 }
+      annualRevenue: { label: 'Annual Revenue ($)', prefix: '$', step: 1000 }
     };
 
     const variable = variables[key];
@@ -75,7 +75,7 @@ describe('RBFCalculator App', () => {
     // Instead, they should be displayed as calculated values
     expect(screen.getByText('Repayment Period (months)', { selector: 'label' })).toBeInTheDocument();
     expect(screen.getByLabelText('Annual Profit Margin (%)')).toBeInTheDocument();
-    expect(screen.getByLabelText('Annual Revenue')).toBeInTheDocument();
+    expect(screen.getByLabelText('Annual Revenue ($)')).toBeInTheDocument();
   });
 
   test('allows changing the solveFor variable', () => {
