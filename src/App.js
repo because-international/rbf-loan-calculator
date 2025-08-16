@@ -213,14 +213,20 @@ const RBFCalculator = () => {
             <h1 className="text-3xl font-bold text-center">Revenue Based Finance Calculator</h1>
             <p className="text-center mt-2 opacity-90">Calculate RBF loan terms and payments</p>
           </div>
-{/* How to Use Information */}
-            <div className="bg-gray-50 p-6 border-t border-gray-200">
-              <h3 className="font-bold text-gray-800 mb-2">How to Use:</h3>
-              <p className="text-gray-600">
-                Select the variable you want to calculate from the dropdown above, then enter values for all other fields.
-                The calculator will automatically compute your selected variable and show a detailed summary below.
-              </p>
-            </div>
+          {/* How to Use Information */}
+          <div className="bg-gray-50 p-6 border-t border-gray-200">
+            <h3 className="font-bold text-gray-800 mb-2">How to Use:</h3>
+            <p className="text-gray-600 mb-3">
+              Select the variable you want to calculate from the dropdown above, then enter values for all other fields.
+              The calculator will automatically compute your selected variable and show a detailed summary below.
+            </p>
+            <button
+              onClick={navigateToTerms}
+              className="text-blue-600 hover:text-blue-800 font-medium underline"
+            >
+              Learn more about RBF terms and examples
+            </button>
+          </div>
 
           <div className="p-6">
             {/* Solve For Selection */}
