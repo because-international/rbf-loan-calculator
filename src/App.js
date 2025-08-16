@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { calculateSolvedValue, formatValue, getMonthlyPayment, getRepaymentYears, getEffectiveAnnualRate } from './calculator.js';
+import { updateUrlWithoutReload, parseUrlParams } from './urlHandler.js';
 
 // Variables that can be solved for (excluding derived values)
 const solvableVariables = {
@@ -17,19 +18,34 @@ const RBFCalculator = () => {
     return factorRate <= 1 ? 'text-red-600 font-bold' : 'text-gray-800';
   };
 
-  const [values, setValues] = useState({
-    factorRate: 1.5,
-    amountReceived: 5000,
-    revenueShareRate: 5,
-    repaymentPeriod: 24,
-    profitMargin: 16,
-    annualRevenue: 22000
-  });
+  // Parse URL parameters to initialize state
+  const getInitialState = () => {
+    const urlParams = parseUrlParams();
+    const defaultValues = {
+      factorRate: 1.5,
+      amountReceived: 5000,
+      revenueShareRate: 5,
+      repaymentPeriod: 24,
+      profitMargin: 16,
+      annualRevenue: 22000
+    };
+
+    // Merge URL parameters with default values
+    return { ...defaultValues, ...urlParams };
+  };
+
+  const [values, setValues] = useState(getInitialState());
 
   // New state to track raw input values
   const [inputValues, setInputValues] = useState({});
 
-  const [solveFor, setSolveFor] = useState('repaymentPeriod');
+  // Initialize solveFor from URL parameters or default to 'repaymentPeriod'
+  const getUrlSolveFor = () => {
+    const urlParams = parseUrlParams();
+    return urlParams.solveFor || 'repaymentPeriod';
+  };
+
+  const [solveFor, setSolveFor] = useState(getUrlSolveFor());
 
   // Derived values that are always calculated
   const derivedValues = {
@@ -57,10 +73,15 @@ const RBFCalculator = () => {
     }));
 
     // Also update the main values state for immediate calculations
-    setValues(prev => ({
-      ...prev,
+    const updatedValues = {
+      ...values,
       [key]: parseFloat(newValue) || 0
-    }));
+    };
+
+    setValues(updatedValues);
+
+    // Update URL parameters without reloading the page
+    updateUrlWithoutReload(updatedValues, solveFor);
   };
 
   const handleInputBlur = (key) => {
@@ -69,16 +90,21 @@ const RBFCalculator = () => {
     const formattedValue = parseFloat(rawValue).toFixed(2);
 
     // Update the main values state with the formatted value
-    setValues(prev => ({
-      ...prev,
+    const updatedValues = {
+      ...values,
       [key]: parseFloat(formattedValue)
-    }));
+    };
+
+    setValues(updatedValues);
 
     // Update inputValues to show the formatted value
     setInputValues(prev => ({
       ...prev,
       [key]: formattedValue
     }));
+
+    // Update URL parameters without reloading the page
+    updateUrlWithoutReload(updatedValues, solveFor);
   };
 
   const handleInputFocus = (key) => {
@@ -93,6 +119,33 @@ const RBFCalculator = () => {
 
   const handleSolveForChange = (newSolveFor) => {
     setSolveFor(newSolveFor);
+
+    // Update URL parameters without reloading the page
+    updateUrlWithoutReload(values, newSolveFor);
+  };
+
+  const handleShareClick = () => {
+    // Get the current URL with parameters
+    const currentUrl = window.location.href;
+
+    // Copy to clipboard
+    navigator.clipboard.writeText(currentUrl)
+      .then(() => {
+        // Show alert notification
+        alert('URL copied to clipboard!');
+      })
+      .catch(err => {
+        // Fallback for browsers that don't support clipboard API
+        console.error('Failed to copy URL: ', err);
+        // Create a temporary textarea to copy the URL
+        const textarea = document.createElement('textarea');
+        textarea.value = currentUrl;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        alert('URL copied to clipboard!');
+      });
   };
 
   // Combine state values with derived values for calculations
@@ -103,16 +156,21 @@ const RBFCalculator = () => {
   useEffect(() => {
     // Only update state for solvable variables, not derived values
     if (solvableVariables[solveFor]) {
-      setValues(prev => ({
-        ...prev,
+      const updatedValues = {
+        ...values,
         [solveFor]: solvedValue
-      }));
+      };
+
+      setValues(updatedValues);
 
       // Also update inputValues for the solved value
       setInputValues(prev => ({
         ...prev,
         [solveFor]: solvedValue.toFixed(2)
       }));
+
+      // Update URL parameters without reloading the page
+      updateUrlWithoutReload(updatedValues, solveFor);
     }
   }, [solveFor, solvedValue]);
 
@@ -221,7 +279,15 @@ const RBFCalculator = () => {
 
             {/* Summary Information */}
             <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6 rounded-xl border border-gray-200">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Loan Summary</h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-800">Loan Summary</h2>
+                <button
+                  onClick={handleShareClick}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition duration-200"
+                >
+                  Share
+                </button>
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div className="bg-white p-4 rounded-lg shadow-sm">

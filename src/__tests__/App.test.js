@@ -2,6 +2,14 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import App from '../App';
 
+// Mock window.location
+const mockWindowLocation = {
+  origin: 'http://localhost:3000',
+  pathname: '/',
+  search: '',
+  href: 'http://localhost:3000/'
+};
+
 // Mock the calculator functions to avoid complex calculations in UI tests
 jest.mock('../calculator', () => ({
   calculateSolvedValue: jest.fn(() => 82),
@@ -29,7 +37,30 @@ jest.mock('../calculator', () => ({
   getEffectiveAnnualRate: jest.fn(() => 12.5)
 }));
 
+// Mock the urlHandler functions
+jest.mock('../urlHandler', () => ({
+  updateUrlWithoutReload: jest.fn(),
+  parseUrlParams: jest.fn(() => ({}))
+}));
+
 describe('RBFCalculator App', () => {
+  beforeEach(() => {
+    // Reset mocks before each test
+    jest.clearAllMocks();
+
+    // Mock window.location
+    delete window.location;
+    window.location = mockWindowLocation;
+
+    // Mock navigator.clipboard
+    Object.defineProperty(navigator, 'clipboard', {
+      value: {
+        writeText: jest.fn(() => Promise.resolve())
+      },
+      writable: true
+    });
+  });
+
   test('renders without crashing', () => {
     render(<App />);
     expect(screen.getByText('Revenue Based Finance Calculator')).toBeInTheDocument();
@@ -98,5 +129,59 @@ describe('RBFCalculator App', () => {
     expect(screen.getByText(/Monthly Payment: \d+%/)).toBeInTheDocument();
     expect(screen.getByText(/Factor Rate: \d+\.?\d*x/)).toBeInTheDocument();
     expect(screen.getByText(/Effective Annual Rate of Return/)).toBeInTheDocument();
+  });
+
+  test('displays share button', () => {
+    render(<App />);
+
+    const shareButton = screen.getByText('Share');
+    expect(shareButton).toBeInTheDocument();
+    expect(shareButton).toHaveClass('bg-blue-600');
+  });
+
+  test('copies URL to clipboard when share button is clicked', () => {
+    render(<App />);
+
+    const shareButton = screen.getByText('Share');
+    fireEvent.click(shareButton);
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith('http://localhost:3000/');
+  });
+
+  test('restores solveFor from URL parameters', () => {
+    // Mock window.location.search with solveFor parameter
+    window.location.search = '?solveFor=factorRate';
+
+    // Update the parseUrlParams mock to return the solveFor parameter
+    const urlHandler = require('../urlHandler');
+    urlHandler.parseUrlParams.mockImplementation(() => ({
+      solveFor: 'factorRate'
+    }));
+
+    render(<App />);
+
+    const select = screen.getByRole('combobox');
+    expect(select.value).toBe('factorRate');
+  });
+
+  test('updates URL when solveFor changes', () => {
+    render(<App />);
+
+    const select = screen.getByRole('combobox');
+    fireEvent.change(select, { target: { value: 'factorRate' } });
+
+    // Check that updateUrlWithoutReload was called with the new solveFor value
+    const urlHandler = require('../urlHandler');
+    expect(urlHandler.updateUrlWithoutReload).toHaveBeenCalledWith(
+      expect.objectContaining({
+        factorRate: 1.5,
+        amountReceived: 5000,
+        revenueShareRate: 5,
+        repaymentPeriod: 24,
+        profitMargin: 16,
+        annualRevenue: 22000
+      }),
+      'factorRate'
+    );
   });
 });
