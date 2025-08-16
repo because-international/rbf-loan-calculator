@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { calculateSolvedValue, formatValue, getMonthlyPayment, getRepaymentYears, getEffectiveAnnualRate } from './calculator.js';
 import { updateUrlWithoutReload, parseUrlParams, updateUrlParams } from './urlHandler.js';
+import RBFTermsPage from './RBFTermsPage.js';
 
 // Variables that can be solved for (excluding derived values)
 const solvableVariables = {
@@ -13,6 +14,9 @@ const solvableVariables = {
 };
 
 const RBFCalculator = () => {
+  // State to track current page (calculator or terms)
+  const [currentPage, setCurrentPage] = useState('calculator');
+
   // Helper function to determine color class based on factor rate
   const getFactorRateColorClass = (factorRate) => {
     return factorRate <= 1 ? 'text-red-600 font-bold' : 'text-gray-800';
@@ -159,6 +163,16 @@ const RBFCalculator = () => {
       });
   };
 
+  // Function to navigate to terms page
+  const navigateToTerms = () => {
+    setCurrentPage('terms');
+  };
+
+  // Function to navigate back to calculator
+  const navigateToCalculator = () => {
+    setCurrentPage('calculator');
+  };
+
   // Combine state values with derived values for calculations
   const calculationValues = { ...values, ...derivedValues };
   const solvedValue = calculateSolvedValue(calculationValues, solveFor);
@@ -185,6 +199,12 @@ const RBFCalculator = () => {
     }
   }, [solveFor, solvedValue, values]);
 
+  // If we're on the terms page, render the RBFTermsPage component
+  if (currentPage === 'terms') {
+    return <RBFTermsPage onBackToCalculator={navigateToCalculator} />;
+  }
+
+  // Otherwise, render the calculator
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
@@ -334,8 +354,6 @@ const RBFCalculator = () => {
               </div>
             </div>
           </div>
-
-
         </div>
       </div>
     </div>
