@@ -198,4 +198,36 @@ For local testing of the Vercel deployment process:
 - **Preview Deployments**: Each pull request gets a unique preview URL
 - **Global CDN**: Fast worldwide performance
 - **Free SSL**: Automatic HTTPS for all deployments
+
+## Troubleshooting
+
+### Common Build Issues
+
+#### 1. React Hook useEffect has unnecessary dependencies error
+
+**Problem**:
+
+```
+React Hook useEffect has an unnecessary dependency: 'solvableVariables'. Either exclude it or remove the dependency array.
+```
+
+**Solution**:
+This error occurs when a constant defined outside the React component is included in a useEffect dependency array. The fix is to remove the constant from the dependency array since it never changes.
+
+In `src/App.js`, the `solvableVariables` constant was incorrectly included in the useEffect dependency array on line 117. The fix was to remove it:
+
+```javascript
+// Before (incorrect)
+useEffect(() => {
+  // ...
+}, [solveFor, solvedValue, solvableVariables]);
+
+// After (correct)
+useEffect(() => {
+  // ...
+}, [solveFor, solvedValue]);
+```
+
+This resolves the build error that was preventing deployment to Vercel, as the CI environment treats ESLint warnings as errors.
+
 - **Zero Cost**: Completely free for this application's needs
