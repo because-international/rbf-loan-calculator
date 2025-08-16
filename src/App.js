@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { calculateSolvedValue, formatValue, getMonthlyPayment, getRepaymentYears, getEffectiveAnnualRate } from './calculator.js';
 
+// Variables that can be solved for (excluding derived values)
+const solvableVariables = {
+  factorRate: { label: 'Factor Rate (multiplier)', suffix: 'x', step: 0.1 },
+  amountReceived: { label: 'Amount Received ($)', prefix: '$', step: 100 },
+  revenueShareRate: { label: 'Revenue Share Rate (%)', suffix: '%', step: 0.5 },
+  repaymentPeriod: { label: 'Repayment Period (months)', suffix: ' months', step: 1 },
+  profitMargin: { label: 'Annual Profit Margin (%)', suffix: '%', step: 1 },
+  annualRevenue: { label: 'Annual Revenue', prefix: '$', step: 1000 }
+};
+
 const RBFCalculator = () => {
   // Helper function to determine color class based on factor rate
   const getFactorRateColorClass = (factorRate) => {
@@ -33,16 +43,6 @@ const RBFCalculator = () => {
     amountReceived: { label: 'Amount Received ($)', prefix: '$', step: 100 },
     repaymentObligation: { label: 'Repayment Obligation', prefix: '$', step: 100 },
     costOfCapital: { label: 'Cost of Capital', prefix: '$', step: 100 },
-    revenueShareRate: { label: 'Revenue Share Rate (%)', suffix: '%', step: 0.5 },
-    repaymentPeriod: { label: 'Repayment Period (months)', suffix: ' months', step: 1 },
-    profitMargin: { label: 'Annual Profit Margin (%)', suffix: '%', step: 1 },
-    annualRevenue: { label: 'Annual Revenue', prefix: '$', step: 1000 }
-  };
-
-  // Variables that can be solved for (excluding derived values)
-  const solvableVariables = {
-    factorRate: { label: 'Factor Rate (multiplier)', suffix: 'x', step: 0.1 },
-    amountReceived: { label: 'Amount Received ($)', prefix: '$', step: 100 },
     revenueShareRate: { label: 'Revenue Share Rate (%)', suffix: '%', step: 0.5 },
     repaymentPeriod: { label: 'Repayment Period (months)', suffix: ' months', step: 1 },
     profitMargin: { label: 'Annual Profit Margin (%)', suffix: '%', step: 1 },
@@ -114,7 +114,7 @@ const RBFCalculator = () => {
         [solveFor]: solvedValue.toFixed(2)
       }));
     }
-  }, [solveFor, solvedValue]);
+  }, [solveFor, solvedValue, solvableVariables]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
