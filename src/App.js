@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { calculateSolvedValue, formatValue, getMonthlyPayment, getRepaymentYears, getEffectiveAnnualRate } from './calculator.js';
-import { updateUrlWithoutReload, parseUrlParams } from './urlHandler.js';
+import { updateUrlWithoutReload, parseUrlParams, updateUrlParams } from './urlHandler.js';
 
 // Variables that can be solved for (excluding derived values)
 const solvableVariables = {
@@ -125,8 +125,19 @@ const RBFCalculator = () => {
   };
 
   const handleShareClick = () => {
-    // Get the current URL with parameters
-    const currentUrl = window.location.href;
+    // Create a merged object of current values and input values
+    // For each key in values, use the input value if it exists, otherwise use the stored value
+    const currentValues = { ...values };
+    Object.keys(inputValues).forEach(key => {
+      if (inputValues[key] !== undefined && inputValues[key] !== null) {
+        // Try to parse the input value as a number, otherwise keep as string
+        const parsedValue = parseFloat(inputValues[key]);
+        currentValues[key] = isNaN(parsedValue) ? inputValues[key] : parsedValue;
+      }
+    });
+
+    // Create a new URL with the current values and solveFor
+    const currentUrl = updateUrlParams(currentValues, solveFor);
 
     // Copy to clipboard
     navigator.clipboard.writeText(currentUrl)
@@ -172,7 +183,7 @@ const RBFCalculator = () => {
       // Update URL parameters without reloading the page
       updateUrlWithoutReload(updatedValues, solveFor);
     }
-  }, [solveFor, solvedValue]);
+  }, [solveFor, solvedValue, values]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
