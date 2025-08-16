@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { calculateSolvedValue, formatValue, getMonthlyPayment, getRepaymentYears, getEffectiveAnnualRate } from './calculator.js';
 import { updateUrlWithoutReload, parseUrlParams, updateUrlParams } from './urlHandler.js';
+import RBFTermsPage from './RBFTermsPage.js';
 
 // Variables that can be solved for (excluding derived values)
 const solvableVariables = {
@@ -13,6 +14,9 @@ const solvableVariables = {
 };
 
 const RBFCalculator = () => {
+  // State to track current page (calculator or terms)
+  const [currentPage, setCurrentPage] = useState('calculator');
+
   // Helper function to determine color class based on factor rate
   const getFactorRateColorClass = (factorRate) => {
     return factorRate <= 1 ? 'text-red-600 font-bold' : 'text-gray-800';
@@ -159,6 +163,16 @@ const RBFCalculator = () => {
       });
   };
 
+  // Function to navigate to terms page
+  const navigateToTerms = () => {
+    setCurrentPage('terms');
+  };
+
+  // Function to navigate back to calculator
+  const navigateToCalculator = () => {
+    setCurrentPage('calculator');
+  };
+
   // Combine state values with derived values for calculations
   const calculationValues = { ...values, ...derivedValues };
   const solvedValue = calculateSolvedValue(calculationValues, solveFor);
@@ -185,6 +199,12 @@ const RBFCalculator = () => {
     }
   }, [solveFor, solvedValue, values]);
 
+  // If we're on the terms page, render the RBFTermsPage component
+  if (currentPage === 'terms') {
+    return <RBFTermsPage onBackToCalculator={navigateToCalculator} />;
+  }
+
+  // Otherwise, render the calculator
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
@@ -193,14 +213,20 @@ const RBFCalculator = () => {
             <h1 className="text-3xl font-bold text-center">Revenue Based Finance Calculator</h1>
             <p className="text-center mt-2 opacity-90">Calculate RBF loan terms and payments</p>
           </div>
-{/* How to Use Information */}
-            <div className="bg-gray-50 p-6 border-t border-gray-200">
-              <h3 className="font-bold text-gray-800 mb-2">How to Use:</h3>
-              <p className="text-gray-600">
-                Select the variable you want to calculate from the dropdown above, then enter values for all other fields.
-                The calculator will automatically compute your selected variable and show a detailed summary below.
-              </p>
-            </div>
+          {/* How to Use Information */}
+          <div className="bg-gray-50 p-6 border-t border-gray-200">
+            <h3 className="font-bold text-gray-800 mb-2">How to Use:</h3>
+            <p className="text-gray-600 mb-3">
+              Select the variable you want to calculate from the dropdown above, then enter values for all other fields.
+              The calculator will automatically compute your selected variable and show a detailed summary below.
+            </p>
+            <button
+              onClick={navigateToTerms}
+              className="text-blue-600 hover:text-blue-800 font-medium underline"
+            >
+              Learn more about RBF terms and examples
+            </button>
+          </div>
 
           <div className="p-6">
             {/* Solve For Selection */}
@@ -334,8 +360,6 @@ const RBFCalculator = () => {
               </div>
             </div>
           </div>
-
-
         </div>
       </div>
     </div>
