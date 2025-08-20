@@ -40,8 +40,8 @@ export const formatValue = (key, value) => {
   const variables = {
     factorRate: { label: 'Factor Rate (multiplier)', suffix: 'x', step: 0.1 },
     amountReceived: { label: 'Amount Received ($)', prefix: '$', step: 100 },
-    repaymentObligation: { label: 'Repayment Obligation', prefix: '$', step: 100 },
-    costOfCapital: { label: 'Cost of Capital', prefix: '$', step: 100 },
+    repaymentObligation: { label: 'Repayment Obligation ($)', prefix: '$', step: 100 },
+    costOfCapital: { label: 'Cost of Capital ($)', prefix: '$', step: 100 },
     revenueShareRate: { label: 'Revenue Share Rate (%)', suffix: '%', step: 0.5 },
     repaymentPeriod: { label: 'Repayment Period (months)', suffix: ' months', step: 1 },
     profitMargin: { label: 'Annual Profit Margin (%)', suffix: '%', step: 1 },

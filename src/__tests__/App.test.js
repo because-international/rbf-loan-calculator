@@ -17,8 +17,8 @@ jest.mock('../calculator', () => ({
     const variables = {
       factorRate: { label: 'Factor Rate (multiplier)', suffix: 'x', step: 0.1 },
       amountReceived: { label: 'Amount Received ($)', prefix: '$', step: 100 },
-      repaymentObligation: { label: 'Repayment Obligation', prefix: '$', step: 100 },
-      costOfCapital: { label: 'Cost of Capital', prefix: '$', step: 100 },
+      repaymentObligation: { label: 'Repayment Obligation ($)', prefix: '$', step: 100 },
+      costOfCapital: { label: 'Cost of Capital ($)', prefix: '$', step: 100 },
       revenueShareRate: { label: 'Revenue Share Rate (%)', suffix: '%', step: 0.5 },
       repaymentPeriod: { label: 'Repayment Period (months)', suffix: ' months', step: 1 },
       profitMargin: { label: 'Annual Profit Margin (%)', suffix: '%', step: 1 },
@@ -116,7 +116,7 @@ describe('RBFCalculator App', () => {
     render(<App />);
 
     expect(screen.getByText('Loan Summary')).toBeInTheDocument();
-    expect(screen.getByText('Monthly Payment')).toBeInTheDocument();
+    expect(screen.getByText('Estimated Monthly Payment')).toBeInTheDocument();
     expect(screen.getByText('Repayment Period (months)', { selector: 'div.text-sm.text-gray-500.mb-1' })).toBeInTheDocument();
     expect(screen.getByText('Total Cost of Capital')).toBeInTheDocument();
   });
@@ -126,7 +126,7 @@ describe('RBFCalculator App', () => {
 
     expect(screen.getByText('Calculation Details:')).toBeInTheDocument();
     expect(screen.getByText(/Monthly Revenue/)).toBeInTheDocument();
-    expect(screen.getByText(/Monthly Payment: \d+%/)).toBeInTheDocument();
+    expect(screen.getByText(/Estimated Monthly Payment: \d+%/)).toBeInTheDocument();
     expect(screen.getByText(/Factor Rate: \d+\.?\d*x/)).toBeInTheDocument();
     expect(screen.getByText(/Effective Annual Rate of Return/)).toBeInTheDocument();
   });
