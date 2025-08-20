@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { calculateSolvedValue, formatValue, getMonthlyPayment, getRepaymentYears, getEffectiveAnnualRate } from './calculator.js';
 import { updateUrlWithoutReload, parseUrlParams, updateUrlParams } from './urlHandler.js';
+import { debounce, throttle } from './utils.js';
 import RBFTermsPage from './RBFTermsPage.js';
 
 // Variables that can be solved for (excluding derived values)
@@ -14,6 +15,26 @@ const solvableVariables = {
 };
 
 const RBFCalculator = () => {
+// Performance monitoring
+  const renderCount = useRef(0);
+
+  // Log when entering component - only in development
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[PERFORMANCE] App component mounted');
+      return () => console.log('[PERFORMANCE] App component unmounted');
+    }
+  }, []);
+
+  // Log component render - only in development
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      renderCount.current += 1;
+      if (renderCount.current <= 20) { // Only log first 20 renders to avoid console spam
+        console.log(`[PERFORMANCE] App component render #${renderCount.current}`);
+      }
+    }
+  });
   // State to track current page (calculator or terms)
   const [currentPage, setCurrentPage] = useState('calculator');
 
@@ -21,6 +42,15 @@ const RBFCalculator = () => {
   const getFactorRateColorClass = (factorRate) => {
     return factorRate <= 1 ? 'text-red-600 font-bold' : 'text-gray-800';
   };
+
+  // Create debounced versions of functions that update state frequently
+  const debouncedUpdateUrl = useMemo(() => debounce((values, solveFor) => {
+    updateUrlWithoutReload(values, solveFor);
+  }, 300), []);
+
+  const throttledUpdateUrl = useMemo(() => throttle((values, solveFor) => {
+    updateUrlWithoutReload(values, solveFor);
+  }, 1000), []);
 
   // Parse URL parameters to initialize state
   const getInitialState = () => {
@@ -52,17 +82,17 @@ const RBFCalculator = () => {
   const [solveFor, setSolveFor] = useState(getUrlSolveFor());
 
   // Derived values that are always calculated
-  const derivedValues = {
+  const derivedValues = useMemo(() => ({
     repaymentObligation: values.amountReceived * values.factorRate,
     costOfCapital: (values.amountReceived * values.factorRate) - values.amountReceived
-  };
+  }), [values.amountReceived, values.factorRate]);
 
   // All variables for display purposes
   const variables = {
     factorRate: { label: 'Factor Rate (multiplier)', suffix: 'x', step: 0.1 },
     amountReceived: { label: 'Amount Received ($)', prefix: '$', step: 100 },
-    repaymentObligation: { label: 'Repayment Obligation', prefix: '$', step: 100 },
-    costOfCapital: { label: 'Cost of Capital', prefix: '$', step: 100 },
+    repaymentObligation: { label: 'Repayment Obligation ($)', prefix: '$', step: 100 },
+    costOfCapital: { label: 'Cost of Capital ($)', prefix: '$', step: 100 },
     revenueShareRate: { label: 'Revenue Share Rate (%)', suffix: '%', step: 0.5 },
     repaymentPeriod: { label: 'Repayment Period (months)', suffix: ' months', step: 1 },
     profitMargin: { label: 'Annual Profit Margin (%)', suffix: '%', step: 1 },
@@ -84,8 +114,8 @@ const RBFCalculator = () => {
 
     setValues(updatedValues);
 
-    // Update URL parameters without reloading the page
-    updateUrlWithoutReload(updatedValues, solveFor);
+    // Update URL parameters with debouncing to prevent excessive updates
+    debouncedUpdateUrl(updatedValues, solveFor);
   };
 
   const handleInputBlur = (key) => {
@@ -107,8 +137,8 @@ const RBFCalculator = () => {
       [key]: formattedValue
     }));
 
-    // Update URL parameters without reloading the page
-    updateUrlWithoutReload(updatedValues, solveFor);
+    // Update URL parameters with debouncing
+    debouncedUpdateUrl(updatedValues, solveFor);
   };
 
   const handleInputFocus = (key) => {
@@ -124,8 +154,8 @@ const RBFCalculator = () => {
   const handleSolveForChange = (newSolveFor) => {
     setSolveFor(newSolveFor);
 
-    // Update URL parameters without reloading the page
-    updateUrlWithoutReload(values, newSolveFor);
+    // Update URL parameters with throttling
+    throttledUpdateUrl(values, newSolveFor);
   };
 
   const handleShareClick = () => {
@@ -162,8 +192,7 @@ const RBFCalculator = () => {
         alert('URL copied to clipboard!');
       });
   };
-
-  // Function to navigate to terms page
+// Function to navigate to terms page
   const navigateToTerms = () => {
     setCurrentPage('terms');
   };
@@ -174,8 +203,8 @@ const RBFCalculator = () => {
   };
 
   // Combine state values with derived values for calculations
-  const calculationValues = { ...values, ...derivedValues };
-  const solvedValue = calculateSolvedValue(calculationValues, solveFor);
+  const calculationValues = useMemo(() => ({ ...values, ...derivedValues }), [values, derivedValues]);
+  const solvedValue = useMemo(() => calculateSolvedValue(calculationValues, solveFor), [calculationValues, solveFor]);
 
   // Update the solved value in our state for consistency
   useEffect(() => {
@@ -194,10 +223,10 @@ const RBFCalculator = () => {
         [solveFor]: solvedValue.toFixed(2)
       }));
 
-      // Update URL parameters without reloading the page
-      updateUrlWithoutReload(updatedValues, solveFor);
+      // Update URL parameters with throttling
+      throttledUpdateUrl(updatedValues, solveFor);
     }
-  }, [solveFor, solvedValue, values]);
+  }, [solveFor, solvedValue, values, throttledUpdateUrl]);
 
   // If we're on the terms page, render the RBFTermsPage component
   if (currentPage === 'terms') {
@@ -328,7 +357,7 @@ const RBFCalculator = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div className="bg-white p-4 rounded-lg shadow-sm">
-                  <div className="text-sm text-gray-500 mb-1">Monthly Payment</div>
+                  <div className="text-sm text-gray-500 mb-1">Estimated Monthly Payment</div>
                   <div className="text-xl font-bold text-gray-800">
                     ${getMonthlyPayment(values).toFixed(2)}
                   </div>
@@ -353,7 +382,7 @@ const RBFCalculator = () => {
                 <h3 className="font-bold text-gray-800 mb-2">Calculation Details:</h3>
                 <ul className="list-disc pl-5 space-y-1 text-gray-700">
                   <li>Monthly Revenue: ${(values.annualRevenue / 12).toFixed(2)}</li>
-                  <li>Monthly Payment: {values.revenueShareRate}% of monthly revenue</li>
+                  <li>Estimated Monthly Payment: {values.revenueShareRate}% of monthly revenue</li>
                   <li>Factor Rate: <span className={getFactorRateColorClass(values.factorRate)}>{formatValue('factorRate', values.factorRate)}</span> (pay back <span className={getFactorRateColorClass(values.factorRate)}>{formatValue('factorRate', values.factorRate)}</span> borrowed amount)</li>
                   <li>Effective Annual Rate of Return: {(getEffectiveAnnualRate(calculationValues.factorRate, calculationValues.repaymentPeriod) || 0).toFixed(2)}%</li>
                 </ul>

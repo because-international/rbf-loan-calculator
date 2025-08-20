@@ -65,7 +65,7 @@ describe('RBF Calculator Functions', () => {
   });
 
   describe('getMonthlyPayment', () => {
-    test('should calculate monthly payment correctly', () => {
+    test('should calculate estimated monthly payment correctly', () => {
       // ($22000 / 12) * 0.05 = $91.67
       const result = getMonthlyPayment(testValues);
       expect(result).toBeCloseTo(91.67, 2);
