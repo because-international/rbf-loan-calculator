@@ -67,11 +67,31 @@ The repayment period would be calculated as:
    npm test
    ```
 
+## Excel/Google Sheets Version
+
+An Excel spreadsheet version (`rbf-calculator.xlsx`) is also available for use in Google Sheets:
+
+1. Download `rbf-calculator.xlsx` from this repository
+2. Upload to Google Drive
+3. Open with Google Sheets (auto-converts)
+4. Use the dropdown in cell B3 to select what to calculate
+5. Unhide columns E-H to modify input values (column F)
+
+The spreadsheet includes all the same calculation logic as the web app, with:
+
+- Dropdown selection for solve-for variable
+- Conditional formatting (green = calculated, red = warning for Factor Rate ≤ 1)
+- Data validation on inputs
+- Derived values and loan summary sections
+
+To regenerate the spreadsheet, run: `python3 create_rbf_calculator.py`
+
 ## Technologies Used
 
 - React.js
 - Tailwind CSS
 - Jest (testing framework)
+- Python/openpyxl (for Excel generation)
 
 ## Test Coverage
 
